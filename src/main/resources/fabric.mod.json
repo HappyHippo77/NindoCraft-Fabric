@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "nindocraft",
+  "version": "${version}",
+
+  "name": "NindoCraft",
+  "description": "bElIeVe It!",
+  "authors": [
+    "HappyHippo77"
+  ],
+
+  "license": "MIT",
+  "icon": "assets/nindocraft/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "io.github.happyhippo77.nindocraft.NindoCraft"
+    ],
+    "client": [
+      {
+        "value": "io.github.happyhippo77.nindocraft.NindoCraftClient"
+      }
+    ]
+  },
+  "mixins": [
+    "modid.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.14.6",
+    "fabric": "*",
+    "minecraft": "~1.19",
+    "java": ">=17"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
