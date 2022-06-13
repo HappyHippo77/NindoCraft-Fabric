@@ -2,6 +2,8 @@ package io.github.happyhippo77.nindocraft;
 
 
 import io.github.happyhippo77.nindocraft.jutsu.JutsuCaster;
+import io.github.happyhippo77.nindocraft.networking.NindoCraftServerPackets;
+import io.github.happyhippo77.nindocraft.sounds.ModSounds;
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +14,6 @@ public class NindoCraft implements ModInitializer {
 	// That way, it's clear which mod wrote info, warnings, and errors.
 	public static final String MOD_ID = "nindocraft";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-	public static final JutsuCaster handSignIndex = new JutsuCaster();
 
 	@Override
 	public void onInitialize() {
@@ -20,6 +21,8 @@ public class NindoCraft implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 
-		LOGGER.info("Hello Fabric world!");
+		NindoCraftServerPackets.initialize();
+
+		ModSounds.registerSounds();
 	}
 }

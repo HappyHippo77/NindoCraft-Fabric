@@ -1,35 +1,33 @@
 package io.github.happyhippo77.nindocraft.mixin;
 
 import com.mojang.authlib.GameProfile;
-import io.github.happyhippo77.nindocraft.NindoCraft;
 import io.github.happyhippo77.nindocraft.handsigning.HandSignSequence;
+import io.github.happyhippo77.nindocraft.networking.NindoCraftServerPackets;
 import io.github.happyhippo77.nindocraft.util.NindoCraftPlayer;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.attribute.EntityAttributes;
+import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.encryption.PlayerPublicKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.network.ServerPlayerInteractionManager;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.GameMode;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import javax.management.ObjectInstance;
-import java.util.Random;
-
 @Mixin(ServerPlayerEntity.class)
 public abstract class NindoCraftPlayerMixin implements NindoCraftPlayer {
 
-	private HandSignSequence handSignSequence = new HandSignSequence(new Integer[0]);
+	@Shadow @Final public ServerPlayerInteractionManager interactionManager;
+	private HandSignSequence handSignSequence = new HandSignSequence(new int[0]);
 	private int chakra;
 	private int stamina;
 	private int staminaScore;
@@ -37,12 +35,22 @@ public abstract class NindoCraftPlayerMixin implements NindoCraftPlayer {
 	private boolean rechargeStamina = true;
 	private boolean isHandSigning;
 
+	private boolean handledFirstJoin = false;
+
 	private int seconds = 0;
 
-	@Inject(method = "tick", at = @At("HEAD"))
-	public void tick(CallbackInfo ci) {
-		System.out.println(isHandSigning);
+	private double defaultWalkingSpeed = 0;
 
+	private final ServerPlayerEntity serverPlayerEntity = ((ServerPlayerEntity) (Object) this);
+
+	@Inject(method = "onDeath", at = @At("TAIL"))
+	public void onDeath(DamageSource damageSource, CallbackInfo ci) {
+		this.stamina = this.maxStamina;
+		this.chakra = 0;
+	}
+
+	@Inject(method = "tick", at = @At("TAIL"))
+	public void tick(CallbackInfo ci) {
 		if (this.seconds == 20) {
 			this.seconds = 0;
 			if (rechargeStamina) {
@@ -55,60 +63,58 @@ public abstract class NindoCraftPlayerMixin implements NindoCraftPlayer {
 			this.seconds += 1;
 		}
 
-		PacketByteBuf buf1 = PacketByteBufs.create();
-		buf1.writeInt(this.chakra);
-		buf1.writeInt(this.stamina);
-		buf1.writeInt(this.staminaScore);
-		buf1.writeInt(this.maxStamina);
-		ServerPlayNetworking.send((ServerPlayerEntity) (Object) this, new Identifier(NindoCraft.MOD_ID, "player_stats_to_renderer"), buf1);
+		if (this.stamina == 0) {
+			if (serverPlayerEntity.interactionManager.getGameMode() != GameMode.CREATIVE && serverPlayerEntity.interactionManager.getGameMode() != GameMode.SPECTATOR) {
+				serverPlayerEntity.kill();
+			}
+		}
+		if (this.stamina < this.maxStamina / 2 / 2 / 2) {
+			serverPlayerEntity.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(defaultWalkingSpeed / 4);
+			serverPlayerEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.BLINDNESS, 100));
+			serverPlayerEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, 100));
+			serverPlayerEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.POISON, 25));
+		}
+		if (this.stamina < this.maxStamina / 2 / 2) {
+			serverPlayerEntity.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(defaultWalkingSpeed / 3);
+			serverPlayerEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.NAUSEA, 100));
+		}
+		else if (this.stamina < this.maxStamina / 2) {
+			serverPlayerEntity.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(defaultWalkingSpeed / 2);
+		}
+		else {
+			serverPlayerEntity.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(defaultWalkingSpeed);
+		}
 
-		PacketByteBuf buf2 = PacketByteBufs.create();
-		buf2.writeBoolean(this.isHandSigning);
-		ServerPlayNetworking.send((ServerPlayerEntity) (Object) this, new Identifier(NindoCraft.MOD_ID, "handsigns_to_key_handler"), buf2);
+		NindoCraftServerPackets.sendRenderPlayerStatsPacket(this);
+	}
+
+	public void firstJoin() {
+		this.stamina = this.maxStamina;
+		this.handledFirstJoin = true;
 	}
 
 	@Inject(method = "<init>", at = @At("TAIL"))
 	public void init(MinecraftServer MinecraftServer, ServerWorld world, GameProfile profile, PlayerPublicKey publicKey, CallbackInfo ci) {
-		maxStamina = 100 + 50 * staminaScore;
+		this.maxStamina = 100 + 50 * this.staminaScore;
+		this.defaultWalkingSpeed = serverPlayerEntity.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED);
 
-		ServerPlayNetworking.registerGlobalReceiver(new Identifier(NindoCraft.MOD_ID, "add_handsign_to_player"), (server, player, handler, buf, responseSender) -> {
-			System.out.println("add_handsign_to_player Called");
-			this.handSignSequence.addHandSign(buf.readInt());
-		});
-		ServerPlayNetworking.registerGlobalReceiver(new Identifier(NindoCraft.MOD_ID, "start_handsign_sequence"), (server, player, handler, buf, responseSender) -> {
-			System.out.println("start_handsign_sequence Called");
-			this.isHandSigning = true;
-			server.execute(() -> {
-				this.setHandSignSequence(new HandSignSequence(new Integer[0]));
-			});
-		});
-		ServerPlayNetworking.registerGlobalReceiver(new Identifier(NindoCraft.MOD_ID, "end_handsign_sequence"), (server, player, handler, buf, responseSender) -> {
-			System.out.println("end_handsign_sequence Called");
-			this.isHandSigning = false;
-			server.execute(() -> {
-				this.setHandSignSequence(new HandSignSequence(new Integer[0]));
-			});
-		});
-		ServerPlayNetworking.registerGlobalReceiver(new Identifier(NindoCraft.MOD_ID, "cast_jutsu_from_client"), (server, player, handler, buf, responseSender) -> {
-			System.out.println("cast_jutsu_from_client Called");
-			server.execute(() ->{
-				this.handSignSequence.cast((PlayerEntity) (Object) this);
-			});
-		});
+		if (!this.handledFirstJoin) {
+			firstJoin();
+		}
+
 	}
 
 	@Inject(method = "writeCustomDataToNbt", at = @At("TAIL"))
 	public void writeNbt(NbtCompound nbt, CallbackInfo ci) {
-		System.out.println("Custom NBT saved");
 		nbt.putInt("chakra", this.chakra);
 		nbt.putInt("stamina", this.stamina);
+		nbt.putBoolean("handledFirstJoin", this.handledFirstJoin);
 	}
 	@Inject(method = "readCustomDataFromNbt", at = @At("TAIL"))
 	public void readNbt(NbtCompound nbt, CallbackInfo ci) {
-		System.out.println("Custom NBT loaded");
 		this.chakra = nbt.getInt("chakra");
 		this.stamina = nbt.getInt("stamina");
-		System.out.println(this.stamina);
+		this.handledFirstJoin = nbt.getBoolean("handledFirstJoin");
 	}
 
 	@Override

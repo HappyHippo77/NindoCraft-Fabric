@@ -1,0 +1,37 @@
+{
+  "poof": {
+    "sounds": [
+      "nindocraft:poof"
+    ]
+  },
+  "chidori_screech": {
+    "sounds": [
+      "nindocraft:chidori_screech"
+    ]
+  },
+  "byakugan_activate": {
+    "sounds": [
+      "nindocraft:byakugan_activate"
+    ]
+  },
+  "jutsu_activate": {
+    "sounds": [
+      "nindocraft:jutsu_activate"
+    ]
+  },
+  "handsign": {
+    "sounds": [
+      "nindocraft:handsign"
+    ]
+  },
+  "chidori_chirps": {
+    "sounds": [
+      "nindocraft:chidori_chirps"
+    ]
+  },
+  "transformation_activate": {
+    "sounds": [
+      "nindocraft:transformation_activate"
+    ]
+  }
+}

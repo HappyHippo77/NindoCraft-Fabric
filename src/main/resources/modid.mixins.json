@@ -7,7 +7,7 @@
     "NindoCraftPlayerMixin"
   ],
   "client": [
-    "NindoCraftHud"
+    "NindoCraftHudMixin"
   ],
   "server": [
   ],

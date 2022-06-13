@@ -1,21 +1,13 @@
 package io.github.happyhippo77.nindocraft;
 
-import io.github.happyhippo77.nindocraft.handsigning.HandSignSequence;
-import io.github.happyhippo77.nindocraft.util.NindoCraftPlayer;
+import io.github.happyhippo77.nindocraft.networking.NindoCraftClientPackets;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
-
-import java.util.Arrays;
 
 public class NindoCraftClient implements ClientModInitializer {
 
@@ -24,16 +16,44 @@ public class NindoCraftClient implements ClientModInitializer {
     private static KeyBinding keyHandSign3;
     private static KeyBinding keyHandSign4;
     private static KeyBinding keyCast;
-    private boolean isHandSigning;
+    private static KeyBinding keyCharge;
+    private static KeyBinding keyCancel;
 
-    private void addHandSignPacket(int i) {
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeInt(i);
-        ClientPlayNetworking.send(new Identifier(NindoCraft.MOD_ID, "add_handsign_to_player"), buf);
+    private static void tick(MinecraftClient client) {
+
+        if (client.world != null) {
+            if (!keyCharge.wasPressed()) {
+                NindoCraftClientPackets.sendJutsuKeyPressed(-2);
+            }
+        }
+
+        while (keyCancel.wasPressed()) {
+            NindoCraftClientPackets.sendJutsuKeyPressed(-1);
+        }
+        while (keyCast.wasPressed()) {
+            NindoCraftClientPackets.sendJutsuKeyPressed(0);
+        }
+        while (keyCharge.wasPressed()) {
+            NindoCraftClientPackets.sendJutsuKeyPressed(5);
+        }
+        while (keyHandSign1.wasPressed()) {
+            NindoCraftClientPackets.sendJutsuKeyPressed(1);
+        }
+        while (keyHandSign2.wasPressed()) {
+            NindoCraftClientPackets.sendJutsuKeyPressed(2);
+        }
+        while (keyHandSign3.wasPressed()) {
+            NindoCraftClientPackets.sendJutsuKeyPressed(3);
+        }
+        while (keyHandSign4.wasPressed()) {
+            NindoCraftClientPackets.sendJutsuKeyPressed(4);
+        }
     }
 
     @Override
     public void onInitializeClient() {
+        NindoCraftClientPackets.initialize();
+
         keyHandSign1 = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.nindocraft.handsign1", // The translation key of the keybinding's name
                 InputUtil.Type.KEYSYM, // The type of the keybinding, KEYSYM for keyboard, MOUSE for mouse.
@@ -64,57 +84,19 @@ public class NindoCraftClient implements ClientModInitializer {
                 GLFW.GLFW_KEY_R, // The keycode of the key
                 "category.nindocraft.main" // The translation key of the keybinding's category.
         ));
+        keyCancel = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.nindocraft.cancel", // The translation key of the keybinding's name
+                InputUtil.Type.KEYSYM, // The type of the keybinding, KEYSYM for keyboard, MOUSE for mouse.
+                GLFW.GLFW_KEY_G, // The keycode of the key
+                "category.nindocraft.main" // The translation key of the keybinding's category.
+        ));
+        keyCharge = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.nindocraft.charge", // The translation key of the keybinding's name
+                InputUtil.Type.KEYSYM, // The type of the keybinding, KEYSYM for keyboard, MOUSE for mouse.
+                GLFW.GLFW_KEY_LEFT_ALT, // The keycode of the key
+                "category.nindocraft.main" // The translation key of the keybinding's category.
+        ));
 
-        ServerPlayConnectionEvents.JOIN.register((networkHandler, packetSender, server) -> {
-            ClientPlayNetworking.registerGlobalReceiver(new Identifier(NindoCraft.MOD_ID, "handsigns_to_key_handler"), (client, handler, buf, responseSender) -> {
-                this.isHandSigning = buf.readBoolean();
-            });
-        });
-
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (keyCast.wasPressed()) {
-                if (isHandSigning) {
-                    ClientPlayNetworking.send(new Identifier(NindoCraft.MOD_ID, "cast_jutsu_from_client"), PacketByteBufs.empty());
-                    ClientPlayNetworking.send(new Identifier(NindoCraft.MOD_ID, "end_handsign_sequence"), PacketByteBufs.empty());
-                }
-                //TestJutsu jutsu = new TestJutsu(client.player, client.player.getRotationVector(), (float) client.player.getEyePos().x, (float) client.player.getEyePos().y, (float) client.player.getEyePos().z);
-            }
-            while (keyHandSign1.wasPressed()) {
-                if (isHandSigning) {
-                    addHandSignPacket(1);
-                }
-                else {
-                    ClientPlayNetworking.send(new Identifier(NindoCraft.MOD_ID, "start_handsign_sequence"), PacketByteBufs.empty());
-                    addHandSignPacket(1);
-                }
-            }
-            while (keyHandSign2.wasPressed()) {
-                if (isHandSigning) {
-                    addHandSignPacket(2);
-                }
-                else {
-                    ClientPlayNetworking.send(new Identifier(NindoCraft.MOD_ID, "start_handsign_sequence"), PacketByteBufs.empty());
-                    addHandSignPacket(2);
-                }
-            }
-            while (keyHandSign3.wasPressed()) {
-                if (isHandSigning) {
-                    addHandSignPacket(3);
-                }
-                else {
-                    ClientPlayNetworking.send(new Identifier(NindoCraft.MOD_ID, "start_handsign_sequence"), PacketByteBufs.empty());
-                    addHandSignPacket(3);
-                }
-            }
-            while (keyHandSign4.wasPressed()) {
-                if (isHandSigning) {
-                    addHandSignPacket(4);
-                }
-                else {
-                    ClientPlayNetworking.send(new Identifier(NindoCraft.MOD_ID, "start_handsign_sequence"), PacketByteBufs.empty());
-                    addHandSignPacket(4);
-                }
-            }
-        });
+        ClientTickEvents.END_CLIENT_TICK.register(NindoCraftClient::tick);
     }
 }

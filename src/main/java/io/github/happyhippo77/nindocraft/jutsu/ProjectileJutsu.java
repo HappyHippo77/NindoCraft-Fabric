@@ -1,30 +1,27 @@
 package io.github.happyhippo77.nindocraft.jutsu;
 
-import io.github.happyhippo77.nindocraft.NindoCraft;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-
-import java.util.ArrayList;
+import net.minecraft.world.World;
 
 public class ProjectileJutsu extends Jutsu {
     public float range;
     public float speed;
     public float damage;
     public Vec3d direction;
+    public World world;
     public Vec3d pos;
 
-    public ProjectileJutsu(PlayerEntity caster, int exp, int chakra, ArrayList<Integer> handSigns, float range, float speed, float damage, Vec3d direction, Vec3d pos) {
+    public ProjectileJutsu(PlayerEntity caster, int exp, int chakra, IntArrayList handSigns, float range, float speed, float damage, Vec3d direction, World world, Vec3d pos) {
         super(caster, exp, chakra, handSigns);
         this.range = range;
         this.speed = speed;
         this.damage = damage;
         this.direction = direction;
+        this.world = world;
         this.pos = pos;
     }
 
@@ -36,12 +33,8 @@ public class ProjectileJutsu extends Jutsu {
     }
 
     @Override
-    public boolean cast() {
+    public void cast() {
+        super.cast();
         ServerTickEvents.START_SERVER_TICK.register(this::serverTick);
-        ClientTickEvents.START_CLIENT_TICK.register(this::clientTick);
-        return true;
-    }
-
-    public void clientTick(MinecraftClient client) {
     }
 }

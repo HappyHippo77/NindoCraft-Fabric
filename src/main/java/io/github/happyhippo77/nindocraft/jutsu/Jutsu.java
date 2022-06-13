@@ -1,22 +1,23 @@
 package io.github.happyhippo77.nindocraft.jutsu;
 
+import io.github.happyhippo77.nindocraft.util.NindoCraftPlayer;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.MinecraftServer;
 
-import javax.annotation.Nullable;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
+import java.io.Serializable;
 
-public abstract class Jutsu {
-    private PlayerEntity caster;
-    private int exp;
-    private int chakra;
-    private ArrayList<Integer> handSigns;
+public abstract class Jutsu implements Serializable {
+    private final PlayerEntity caster;
+    private final int exp;
+    private final int chakra;
+    private final IntArrayList handSigns;
 
-    public Jutsu(PlayerEntity caster, int exp, int chakra, ArrayList<Integer> handSigns) {
+    public Jutsu(PlayerEntity caster, int exp, int chakra, IntArrayList handSigns) {
         this.caster = caster;
         this.exp = exp;
-        this.handSigns = handSigns;
         this.chakra = chakra;
+        this.handSigns = handSigns;
     }
 
     public PlayerEntity getCaster() {
@@ -27,15 +28,19 @@ public abstract class Jutsu {
         return exp;
     }
 
-    public int getChakra() {
+    public int getRequiredChakra() {
         return chakra;
     }
 
-    public ArrayList<Integer> getHandSigns() {
+    public IntArrayList getHandSigns() {
         return handSigns;
     }
 
-    public boolean cast() {
-        return true;
+    public void cast() {
+        NindoCraftPlayer nindoCraftPlayer = (NindoCraftPlayer) caster;
+        nindoCraftPlayer.setChakra(nindoCraftPlayer.getChakra() - this.getRequiredChakra());
+    }
+
+    public void serverTick(MinecraftServer server) {
     }
 }

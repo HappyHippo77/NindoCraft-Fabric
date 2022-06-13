@@ -1,30 +1,37 @@
 package io.github.happyhippo77.nindocraft.jutsu;
 
-import net.minecraft.client.MinecraftClient;
+import io.github.happyhippo77.nindocraft.networking.NindoCraftServerPackets;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-
-import java.util.ArrayList;
-import java.util.Arrays;
+import net.minecraft.world.World;
 
 public class TestJutsu extends ProjectileJutsu {
-    public TestJutsu(PlayerEntity caster, Vec3d direction, Vec3d pos) {
+    public TestJutsu(PlayerEntity caster, Vec3d direction, World world, Vec3d pos) {
         super(caster, 15,
                 10,
-                new ArrayList<Integer>(Arrays.asList(1,2,3,4)),
+                IntArrayList.of(1, 2, 3, 4),
                 15,
                 0.1f,
                 2,
                 direction,
+                world,
                 pos);
     }
 
     @Override
-    public void clientTick(MinecraftClient client) {
-        super.clientTick(client);
-        if (client.world != null && this.range > 0) {
-            client.world.addParticle(ParticleTypes.FLAME, pos.x, pos.y, pos.z, 0, 0, 0);
+    public void serverTick(MinecraftServer server) {
+        super.serverTick(server);
+        if (world != null && this.range > 0) {
+            for (ServerPlayerEntity player : PlayerLookup.tracking((ServerWorld) world, new BlockPos(pos.x, pos.y, pos.z))) {
+                NindoCraftServerPackets.sendRenderParticle(player, ParticleTypes.FLAME, (float) pos.x, (float) pos.y, (float) pos.z, 0, 0, 0);
+            }
         }
     }
 }
