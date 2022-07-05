@@ -4,6 +4,7 @@ import io.github.happyhippo77.nindocraft.NindoCraft;
 import io.github.happyhippo77.nindocraft.jutsu.JutsuCaster;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
 
 public class HandSignSequence {
     private final IntArrayList handSigns;
@@ -19,8 +20,7 @@ public class HandSignSequence {
         return this.handSigns;
     }
 
-    public void cast(PlayerEntity player) {
-        JutsuCaster jc = new JutsuCaster(player, this.handSigns);
-        jc.castJutsu();
+    public void cast(ServerPlayerEntity player) {
+        JutsuCaster.check(handSigns, player);
     }
 }

@@ -6,5 +6,12 @@
   "key.nindocraft.handsign4": "Handsign 4",
   "key.nindocraft.cast": "Cast Jutsu",
   "key.nindocraft.cancel": "Cancel Jutsu",
-  "key.nindocraft.charge": "Charge Chakra"
+  "key.nindocraft.charge": "Charge Chakra",
+  "key.nindocraft.id": "Ninja ID",
+
+  "id.nindocraft.title": "Ninja ID",
+  "id.nindocraft.level": "Lvl %d",
+  "id.nindocraft.exp_needed": "%d/%d Exp",
+  "id.nindocraft.stamina_score": "Stamina: %d",
+  "id.nindocraft.stat_points": "Stat Points: %d"
 }

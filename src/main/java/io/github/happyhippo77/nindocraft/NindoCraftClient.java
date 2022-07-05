@@ -1,5 +1,7 @@
 package io.github.happyhippo77.nindocraft;
 
+import io.github.happyhippo77.nindocraft.client.NindoCraftIdGui;
+import io.github.happyhippo77.nindocraft.client.NindoCraftIdScreen;
 import io.github.happyhippo77.nindocraft.networking.NindoCraftClientPackets;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -18,6 +20,7 @@ public class NindoCraftClient implements ClientModInitializer {
     private static KeyBinding keyCast;
     private static KeyBinding keyCharge;
     private static KeyBinding keyCancel;
+    private static KeyBinding keyID;
 
     private static void tick(MinecraftClient client) {
 
@@ -47,6 +50,9 @@ public class NindoCraftClient implements ClientModInitializer {
         }
         while (keyHandSign4.wasPressed()) {
             NindoCraftClientPackets.sendJutsuKeyPressed(4);
+        }
+        while (keyID.wasPressed()) {
+            NindoCraftClientPackets.sendIdRequested();
         }
     }
 
@@ -94,6 +100,12 @@ public class NindoCraftClient implements ClientModInitializer {
                 "key.nindocraft.charge", // The translation key of the keybinding's name
                 InputUtil.Type.KEYSYM, // The type of the keybinding, KEYSYM for keyboard, MOUSE for mouse.
                 GLFW.GLFW_KEY_LEFT_ALT, // The keycode of the key
+                "category.nindocraft.main" // The translation key of the keybinding's category.
+        ));
+        keyID = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.nindocraft.id", // The translation key of the keybinding's name
+                InputUtil.Type.KEYSYM, // The type of the keybinding, KEYSYM for keyboard, MOUSE for mouse.
+                GLFW.GLFW_KEY_U, // The keycode of the key
                 "category.nindocraft.main" // The translation key of the keybinding's category.
         ));
 

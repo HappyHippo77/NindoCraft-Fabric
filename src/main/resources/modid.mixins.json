@@ -4,6 +4,7 @@
   "package": "io.github.happyhippo77.nindocraft.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "LivingEntityMixin",
     "NindoCraftPlayerMixin"
   ],
   "client": [

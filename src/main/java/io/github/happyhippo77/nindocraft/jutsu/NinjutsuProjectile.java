@@ -7,7 +7,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-public class ProjectileJutsu extends Jutsu {
+public class NinjutsuProjectile extends Ninjutsu {
     public float range;
     public float speed;
     public float damage;
@@ -15,7 +15,7 @@ public class ProjectileJutsu extends Jutsu {
     public World world;
     public Vec3d pos;
 
-    public ProjectileJutsu(PlayerEntity caster, int exp, int chakra, IntArrayList handSigns, float range, float speed, float damage, Vec3d direction, World world, Vec3d pos) {
+    public NinjutsuProjectile(PlayerEntity caster, int exp, int chakra, IntArrayList handSigns, float range, float speed, float damage, Vec3d direction, World world, Vec3d pos) {
         super(caster, exp, chakra, handSigns);
         this.range = range;
         this.speed = speed;

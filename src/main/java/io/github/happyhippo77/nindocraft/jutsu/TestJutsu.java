@@ -12,9 +12,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-public class TestJutsu extends ProjectileJutsu {
+public class TestJutsu extends NinjutsuProjectile {
     public TestJutsu(PlayerEntity caster, Vec3d direction, World world, Vec3d pos) {
-        super(caster, 15,
+        super(caster, 200,
                 10,
                 IntArrayList.of(1, 2, 3, 4),
                 15,
